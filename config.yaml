@@ -1,0 +1,21 @@
+storage:
+  raw_papers_dir: data/raw_papers2
+  
+download:
+  timeout: 30
+  retries: 3
+  concurrent_downloads: 5
+  chunk_size: 1048576
+
+storage:
+  path: "./data"
+  max_size: "10GB"
+  format: "json"
+  compression: true
+
+source:
+  urls:
+    - "https://example.com/data1"
+    - "https://example.com/data2"
+  api_key: "${API_KEY}"  # Can use env vars
+  rate_limit: 100
