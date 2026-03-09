@@ -1,28 +1,18 @@
-from dataclasses import dataclass
-from datetime import datetime
-from typing import List
+from pydantic import BaseModel
+from typing import Dict
+
+class APIConfig(BaseModel):
+    chemrxiv_base_url: str
+    user_agent: str
 
 
-@dataclass(frozen=True)
-class PaperMetadata:
-    """
-    Represents metadata for a scientific paper.
+class SearchConfig(BaseModel):
+    term: str
+    limit: int
+    date_range_days: int
 
-    This is the core domain object used throughout the pipeline.
-    """
 
-    id: str
-    title: str
-    authors: List[str]
-    published_date: datetime
-    pdf_url: str
-    source: str
-
-    def filename(self) -> str:
-        """
-        Generate a safe filename for the PDF.
-
-        Returns:
-            str: filename like "chemrxiv_12345.pdf"
-        """
-        return f"{self.source}_{self.id}.pdf"
+class AppConfig(BaseModel):
+    api: APIConfig
+    search: SearchConfig
+    paths: Dict[str, str]

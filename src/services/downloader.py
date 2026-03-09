@@ -1,20 +1,17 @@
-import aiohttp
-from pathlib import Path
-from utils.logger import get_logger
+from src.services.chemrxiv_client import ChemRxivClient
+from src.core.interfaces import PaperProvider
 
-logger = get_logger(__name__)
-
-
-class PDFDownloader:
-
-    async def download_pdf(self, url: str, path: Path):
-
-        path.parent.mkdir(parents=True, exist_ok=True)
-
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as resp:
-
-                with open(path, "wb") as f:
-                    f.write(await resp.read())
-
-        logger.info(f"Downloaded {path.name}")
+class ProviderFactory:
+    """The Factory Pattern implementation."""
+    @staticmethod
+    def get_provider(provider_type: str) -> PaperProvider:
+        providers = {
+            "chemrxiv": ChemRxivClient,
+            # "pubmed": PubMedClient, <--- Add more later!
+        }
+        
+        target_class = providers.get(provider_type.lower())
+        if not target_class:
+            raise ValueError(f"Provider '{provider_type}' is not supported.")
+            
+        return target_class()

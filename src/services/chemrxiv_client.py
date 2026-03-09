@@ -1,40 +1,51 @@
-import aiohttp
+import requests
 from datetime import datetime, timedelta
-from ..src.utils.logger import get_logger
+from typing import List
+from src.core.interfaces import PaperProvider, PaperMetadata
+from src.config.loader import config
+from src.utils.logger import logger
+import time 
 
-logger = get_logger(__name__)
 
 
-class ChemRxivClient:
+class ChemRxivClient(PaperProvider):
+    def __init__(self):
+        self.base_url = config.api.chemrxiv_base_url
+        self.headers = {"User-Agent": config.api.user_agent}
 
-    BASE_URL = "https://chemrxiv.org/engage/chemrxiv/public-api"
+    def fetch_recent_papers(self):
+        all_papers = []
+        offset = 0
+        page_size = 100  # Figshare max per request
+        max_offset = 1000  # Figshare API limit
 
-    async def get_last_month_papers(self):
+        since_date = (datetime.now() - timedelta(days=config.search.date_range_days)).strftime('%Y-%m-%d')
+        logger.info(f"Searching for papers published since {since_date}")
 
-        end_date = datetime.utcnow()
-        start_date = end_date - timedelta(days=30)
+        while offset <= max_offset:
+            params = {
+                "search_for": config.search.term,
+                "offset": offset,
+                "limit": page_size,
+                "published_since": since_date
+            }
 
-        url = f"{self.BASE_URL}/articles"
+            try:
+                response = requests.get(self.base_url, params=params, headers=self.headers)
+                response.raise_for_status()
+            except requests.exceptions.RequestException as e:
+                logger.error(f"Failed: {e}")
+                break
 
-        params = {
-            "limit": 100,
-            "sort": "published",
-            "order": "desc"
-        }
+            papers_page = response.json()
+            if not papers_page:
+                break
 
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, params=params) as resp:
-                data = await resp.json()
+            all_papers.extend(papers_page)
+            logger.info(f"Fetched {len(papers_page)} papers, total so far: {len(all_papers)}")
 
-        papers = []
+            # Increment offset to fetch next batch
+            offset += page_size
 
-        for item in data["items"]:
-            papers.append({
-                "id": item["id"],
-                "title": item["title"],
-                "pdf_url": item["assets"][0]["url"]
-            })
-
-        logger.info(f"Fetched {len(papers)} papers")
-
-        return papers
+        logger.info(f"Total papers fetched: {len(all_papers)}")
+        return all_papers   

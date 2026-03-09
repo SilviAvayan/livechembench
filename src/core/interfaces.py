@@ -1,65 +1,14 @@
 from abc import ABC, abstractmethod
-from datetime import datetime
 from typing import List
-from pathlib import Path
+from pydantic import BaseModel
 
-from .models import PaperMetadata
+class PaperMetadata(BaseModel):
+    id: str
+    title: str
+    download_url: str
+    doi: str
 
-
-class PaperSource(ABC):
-    """
-    Abstract interface for paper sources.
-
-    Strategy Pattern:
-    Allows interchangeable implementations (ChemRxiv, arXiv, PubMed, etc.)
-    """
-
+class PaperProvider(ABC):
     @abstractmethod
-    def fetch_papers(
-        self,
-        start_date: datetime,
-        end_date: datetime,
-    ) -> List[PaperMetadata]:
-        """
-        Fetch papers published between given dates.
-
-        Returns:
-            List of PaperMetadata
-        """
-        pass
-
-
-class PaperDownloader(ABC):
-    """
-    Interface for downloading paper PDFs.
-    """
-
-    @abstractmethod
-    def download(self, paper: PaperMetadata) -> Path:
-        """
-        Download a paper PDF.
-
-        Returns:
-            Path to downloaded file
-        """
-        pass
-
-
-class StorageManager(ABC):
-    """
-    Interface for managing storage.
-    """
-
-    @abstractmethod
-    def get_pdf_path(self, paper: PaperMetadata) -> Path:
-        """
-        Return path where paper should be stored.
-        """
-        pass
-
-    @abstractmethod
-    def exists(self, paper: PaperMetadata) -> bool:
-        """
-        Check if paper already exists.
-        """
+    def fetch_recent_papers(self, limit: int) -> List[PaperMetadata]:
         pass

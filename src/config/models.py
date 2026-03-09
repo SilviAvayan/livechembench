@@ -1,28 +1,26 @@
-from dataclasses import dataclass, field
-from typing import List, Optional, Union
+from pydantic import BaseModel, Field, ConfigDict
+from typing import Dict
 
-@dataclass
-class DownloadConfig:
-    timeout: int = 30
-    retries: int = 3
-    concurrent_downloads: int = 5
-    chunk_size: int = 1048576
+class APIConfig(BaseModel):
+    """Configuration for external API endpoints and identity."""
+    chemrxiv_base_url: str = Field(..., description="The base URL for the ChemRxiv/Figshare API")
+    user_agent: str = Field(..., description="The User-Agent string for HTTP requests")
 
-@dataclass
-class StorageConfig:
-    path: str = "./data"
-    max_size: str = "10GB"
-    format: str = "json"
-    compression: bool = True
+class SearchConfig(BaseModel):
+    """Configuration for search parameters and filters."""
+    term: str = Field(..., description="The search term used to filter papers")
+    limit: int = Field(default=100, description="Number of results per API page")
+    date_range_days: int = Field(..., description="Number of days to look back for new papers")
 
-@dataclass
-class SourceConfig:
-    urls: List[str] = field(default_factory=list)
-    api_key: Optional[str] = None
-    rate_limit: int = 100
 
-@dataclass
-class AppConfig:
-    download: DownloadConfig
-    storage: StorageConfig
-    source: SourceConfig
+class PathConfig(BaseModel):
+    """Configuration for local directory paths."""
+    raw_papers: str
+    benchmark: str = "data/benchmark" # You can add defaults for others in your tree
+    segments: str = "data/segments"
+
+class AppConfig(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    api: APIConfig
+    search: SearchConfig
+    paths: PathConfig
