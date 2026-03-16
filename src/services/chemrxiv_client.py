@@ -1,51 +1,131 @@
-import requests
+import time
 from datetime import datetime, timedelta
 from typing import List
+
+import requests
+
 from src.core.interfaces import PaperProvider, PaperMetadata
 from src.config.loader import config
 from src.utils.logger import logger
-import time 
-
 
 
 class ChemRxivClient(PaperProvider):
-    def __init__(self):
+    """
+    Client for ChemRxiv content hosted on Figshare.
+
+    It:
+    - calls the Figshare `/v2/articles` endpoint with `search_for`
+    - paginates in batches of up to 50 results
+    - filters articles to the last `config.search.date_range_days` days
+    - resolves each article ID to its primary PDF via `/{id}/files`
+    - returns a list of `PaperMetadata` with PDF download URLs.
+    """
+
+    def __init__(self) -> None:
+        # e.g. "https://api.figshare.com/v2/articles"
         self.base_url = config.api.chemrxiv_base_url
         self.headers = {"User-Agent": config.api.user_agent}
 
-    def fetch_recent_papers(self):
-        all_papers = []
-        offset = 0
-        page_size = 100  # Figshare max per request
-        max_offset = 1000  # Figshare API limit
+    def fetch_recent_papers(self, limit: int) -> List[PaperMetadata]:
+        """Return up to `limit` recent ChemRxiv papers that match the search term."""
+        days = config.search.date_range_days
+        cutoff = datetime.utcnow() - timedelta(days=days)
 
-        since_date = (datetime.now() - timedelta(days=config.search.date_range_days)).strftime('%Y-%m-%d')
-        logger.info(f"Searching for papers published since {since_date}")
+        logger.info(
+            f"ChemRxivClient: fetching articles for '{config.search.term}', "
+            f"limit={limit}, last {days} days"
+        )
 
-        while offset <= max_offset:
+        page_size = min(limit, 50)  # Figshare page_size max is 50
+        page = 1
+        recent: list[dict] = []
+
+        # Paginate until we have `limit` recent articles or there are no more pages
+        while len(recent) < limit:
             params = {
                 "search_for": config.search.term,
-                "offset": offset,
-                "limit": page_size,
-                "published_since": since_date
+                "page_size": page_size,
+                "page": page,
+                "order": "published_date",
+                "order_direction": "desc",
             }
 
             try:
-                response = requests.get(self.base_url, params=params, headers=self.headers)
-                response.raise_for_status()
-            except requests.exceptions.RequestException as e:
-                logger.error(f"Failed: {e}")
+                res = requests.get(self.base_url, params=params, headers=self.headers, timeout=30)
+                res.raise_for_status()
+                articles = res.json()
+            except Exception as e:
+                logger.error(f"ChemRxivClient: article search failed on page {page}: {e}")
                 break
 
-            papers_page = response.json()
-            if not papers_page:
+            if not articles:
                 break
 
-            all_papers.extend(papers_page)
-            logger.info(f"Fetched {len(papers_page)} papers, total so far: {len(all_papers)}")
+            for art in articles:
+                try:
+                    pub_str = art.get("published_date")
+                    if not pub_str:
+                        continue
+                    pub_date = datetime.strptime(pub_str, "%Y-%m-%dT%H:%M:%SZ")
+                    if pub_date >= cutoff:
+                        recent.append(art)
+                        if len(recent) >= limit:
+                            break
+                except Exception:
+                    continue
 
-            # Increment offset to fetch next batch
-            offset += page_size
+            if len(articles) < page_size:
+                # Last page
+                break
 
-        logger.info(f"Total papers fetched: {len(all_papers)}")
-        return all_papers   
+            page += 1
+
+        logger.info(f"ChemRxivClient: {len(recent)} articles within the last {days} days.")
+
+        paper_list: List[PaperMetadata] = []
+
+        for art in recent[:limit]:
+            article_id = art.get("id")
+            if article_id is None:
+                continue
+
+            try:
+                files_url = f"{self.base_url}/{article_id}/files"
+                files_res = requests.get(files_url, headers=self.headers, timeout=30)
+                files_res.raise_for_status()
+                files = files_res.json()
+
+                pdf = next(
+                    (
+                        f
+                        for f in files
+                        if f.get("name", "").lower().endswith(".pdf")
+                        and "supp" not in f.get("name", "").lower()
+                    ),
+                    None,
+                )
+                if not pdf:
+                    pdf = next(
+                        (f for f in files if f.get("name", "").lower().endswith(".pdf")),
+                        None,
+                    )
+
+                if not pdf or not pdf.get("download_url"):
+                    continue
+
+                paper_list.append(
+                    PaperMetadata(
+                        id=str(article_id),
+                        title=art.get("title", ""),
+                        download_url=pdf["download_url"],
+                        doi=art.get("doi", ""),
+                    )
+                )
+            except Exception as e:
+                logger.error(f"ChemRxivClient: failed to process article {article_id}: {e}")
+                continue
+            finally:
+                time.sleep(0.2)  # basic rate limiting to avoid hammering the API
+
+        logger.info(f"ChemRxivClient: prepared {len(paper_list)} PDF download tasks.")
+        return paper_list

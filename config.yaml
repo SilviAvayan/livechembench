@@ -1,6 +1,7 @@
 api:
   chemrxiv_base_url: "https://api.figshare.com/v2/articles"
-  user_agent: "LiveChemBench/1.0"
+  user_agent: "LiveChemBench/1.2 (Research Project)"
+  ncbi_api_key: "bc3cddf748fc822879de7e76bd20cadbbb09"
 
 search:
   term: "chemistry"
@@ -9,4 +10,3 @@ search:
 
 paths:
   raw_papers: "data/raw_papers"
-

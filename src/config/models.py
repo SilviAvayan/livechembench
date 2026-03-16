@@ -1,26 +1,22 @@
 from pydantic import BaseModel, Field, ConfigDict
-from typing import Dict
 
 class APIConfig(BaseModel):
-    """Configuration for external API endpoints and identity."""
-    chemrxiv_base_url: str = Field(..., description="The base URL for the ChemRxiv/Figshare API")
-    user_agent: str = Field(..., description="The User-Agent string for HTTP requests")
+    chemrxiv_base_url: str
+    user_agent: str
+    ncbi_api_key: str | None = None
 
 class SearchConfig(BaseModel):
-    """Configuration for search parameters and filters."""
-    term: str = Field(..., description="The search term used to filter papers")
-    limit: int = Field(default=100, description="Number of results per API page")
-    date_range_days: int = Field(..., description="Number of days to look back for new papers")
-
+    term: str
+    limit: int
+    date_range_days: int
 
 class PathConfig(BaseModel):
-    """Configuration for local directory paths."""
     raw_papers: str
-    benchmark: str = "data/benchmark" # You can add defaults for others in your tree
-    segments: str = "data/segments"
 
 class AppConfig(BaseModel):
-    model_config = ConfigDict(extra='forbid')
+    # This tells Pydantic how to handle the dict from yaml
+    model_config = ConfigDict(extra='ignore')
+    
     api: APIConfig
     search: SearchConfig
     paths: PathConfig

@@ -1,38 +1,27 @@
-print("LOADER FILE EXECUTED")
-import yaml
-from pydantic import BaseModel
+import os
 from pathlib import Path
 
-class APIConfig(BaseModel):
-    chemrxiv_base_url: str
-    user_agent: str
+import yaml
 
-class SearchConfig(BaseModel):
-    term: str
-    limit: int
-    date_range_days: int = 30
+from src.config.models import AppConfig  # Import the consolidated model
 
-class AppConfig(BaseModel):
-    api: APIConfig
-    search: SearchConfig
-    paths: dict[str, str]
 
 def load_config() -> AppConfig:
+    """Load application configuration from YAML + environment overrides."""
+    # Go up 3 levels from src/config/loader.py to find config.yaml
     config_path = Path(__file__).resolve().parent.parent.parent / "config.yaml"
-    print("LOADING CONFIG FROM:", config_path)
 
     with open(config_path, "r") as f:
         data = yaml.safe_load(f)
 
-    print("CONFIG CONTENT:", data)
+    # Allow sensitive values to be injected via environment variables
+    env_ncbi = os.getenv("NCBI_API_KEY")
+    if env_ncbi:
+        data.setdefault("api", {})["ncbi_api_key"] = env_ncbi
 
-    return AppConfig(**data)
+    # In Pydantic V2, this converts the dict (and nested dicts) into models
+    return AppConfig.model_validate(data)
+
 
 # Singleton instance
 config = load_config()
-
-
-
-
-
-
