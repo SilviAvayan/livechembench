@@ -10,3 +10,20 @@ search:
 
 paths:
   raw_papers: "data/raw_papers"
+  segmented_papers: "data/segmented_papers"
+
+segmentation:
+  max_key_points: 5
+  min_section_chars: 50
+  abstract_headings:
+    - "abstract"
+    - "summary"
+    - "overview"
+  conclusion_headings:
+    - "conclusion"
+    - "conclusions"
+    - "concluding remarks"
+    - "summary and conclusion"
+    - "final remarks"
+    - "summary and outlook"
+    - "outlook"
