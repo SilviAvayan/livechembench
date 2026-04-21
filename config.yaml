@@ -11,8 +11,24 @@ search:
 paths:
   raw_papers: "data/raw_papers"
   segmented_papers: "data/segmented_papers"
+  segmented_assets: "data/segmented_papers/assets"
 
 segmentation:
+  # paddle_vl: PaddleOCR-VL-1.5 (abstract, sections, tables, figures). Requires optional deps — see requirements-paddleocr-vl.txt
+  # docling: IBM Docling PDF→markdown + heuristic sections (no table/figure assets)
+  engine: paddle_vl
+  paddle_vl:
+    pipeline_version: "v1.5"
+    device: null
+    merge_tables: true
+    relevel_titles: true
+    concatenate_pages: true
+    table_labels:
+      - table
+    figure_labels:
+      - image
+      - chart
+      - figure
   max_key_points: 5
   min_section_chars: 50
   abstract_headings:

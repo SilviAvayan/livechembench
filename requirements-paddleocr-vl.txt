@@ -1,0 +1,11 @@
+# PaddleOCR-VL-1.5 (document parser) - install PaddlePaddle for your platform first,
+# then install the doc-parser extra. See:
+# https://www.paddleocr.ai/latest/en/version3.x/pipeline_usage/PaddleOCR-VL.en.html
+#
+# Examples:
+#   CPU / Apple Silicon:
+#     python -m pip install paddlepaddle
+#   NVIDIA GPU (CUDA 12.6+, CC >= 7.0):
+#     python -m pip install paddlepaddle-gpu==3.2.1 -i https://www.paddlepaddle.org.cn/packages/stable/cu126/
+#
+paddleocr[doc-parser]>=3.0.0

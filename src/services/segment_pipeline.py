@@ -4,6 +4,7 @@ SegmentPipeline: Orchestrates batch segmentation of all PDFs in raw_papers/.
 - Scans the configured raw_papers directory for all *.pdf files
 - Skips already-segmented papers (idempotent re-runs)
 - Writes one <paper_id>.json per paper to segmented_papers/
+- With engine paddle_vl, exports figure crops under paths.segmented_assets/<paper_id>/
 - Prints a summary report on completion
 """
 
@@ -12,21 +13,42 @@ from __future__ import annotations
 import json
 import time
 from pathlib import Path
-from typing import Dict
+from typing import Any, Dict, Optional
 
 from src.config.loader import config
 from src.services.segmenter import SegmentedPaper, segment_paper
 from src.utils.logger import logger
 
+_REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+
 
 class SegmentPipeline:
-    """Batch segmentation of all PDFs using Docling."""
+    """Batch PDF segmentation (PaddleOCR-VL-1.5 or Docling per config)."""
 
     def __init__(self) -> None:
         self.raw_path = Path(config.paths.raw_papers)
+        if not self.raw_path.is_absolute():
+            self.raw_path = _REPO_ROOT / self.raw_path
         self.out_path = Path(config.paths.segmented_papers)
+        if not self.out_path.is_absolute():
+            self.out_path = _REPO_ROOT / self.out_path
         self.out_path.mkdir(parents=True, exist_ok=True)
+        self.assets_root = Path(config.paths.segmented_assets)
+        if not self.assets_root.is_absolute():
+            self.assets_root = _REPO_ROOT / self.assets_root
+        self.assets_root.mkdir(parents=True, exist_ok=True)
         self.cfg = config.segmentation
+
+    def _load_paddle_pipeline(self) -> Any:
+        """Single PaddleOCR-VL instance for the whole batch (avoids reloading ~2GB per PDF)."""
+        from paddleocr import PaddleOCRVL
+
+        pcfg = self.cfg.paddle_vl
+        kwargs: Dict[str, Any] = {"pipeline_version": pcfg.pipeline_version}
+        if pcfg.device:
+            kwargs["device"] = pcfg.device
+        logger.info("Loading PaddleOCR-VL models into memory (once per run)...")
+        return PaddleOCRVL(**kwargs)
 
     # ------------------------------------------------------------------
     # Helpers
@@ -47,9 +69,25 @@ class SegmentPipeline:
     # Main entry point
     # ------------------------------------------------------------------
 
-    def run(self) -> None:
-        """Run segmentation over all PDFs in raw_papers/."""
+    def run(self, limit: Optional[int] = None) -> None:
+        """Run segmentation over PDFs in raw_papers/.
+
+        :param limit: If set, only the first ``limit`` PDFs (sorted by path) are
+            considered. Useful for smoke tests without moving files.
+        """
         pdf_files = sorted(self.raw_path.glob("*.pdf")) + sorted(self.raw_path.glob("*.PDF"))
+        total_available = len(pdf_files)
+
+        if limit is not None:
+            if limit < 1:
+                logger.error("--limit must be a positive integer.")
+                return
+            pdf_files = pdf_files[:limit]
+            logger.info(
+                f"Limit active: processing {len(pdf_files)} PDF(s) "
+                f"(first {limit} in sorted order, {total_available} total in folder)."
+            )
+
         total = len(pdf_files)
 
         if total == 0:
@@ -57,8 +95,20 @@ class SegmentPipeline:
             return
 
         logger.info(f"=== SEGMENTATION PIPELINE STARTING ===")
-        logger.info(f"Found {total} PDF files in {self.raw_path}")
+        logger.info(f"Engine: {self.cfg.engine}")
+        logger.info(
+            f"Found {total} PDF file(s) in this run"
+            + (
+                f" ({total_available} total in {self.raw_path})"
+                if total_available != total
+                else f" in {self.raw_path}"
+            )
+        )
         logger.info(f"Output directory: {self.out_path}")
+        logger.info(f"Assets directory: {self.assets_root}")
+
+        paddle_pipeline: Optional[Any] = None
+        paddle_load_error: Optional[Exception] = None
 
         stats: Dict[str, int] = {"success": 0, "partial": 0, "failed": 0, "skipped": 0}
         total_raw_chars = 0
@@ -75,8 +125,32 @@ class SegmentPipeline:
                 stats["skipped"] += 1
                 continue
 
+            if self.cfg.engine == "paddle_vl" and paddle_pipeline is None:
+                if paddle_load_error is not None:
+                    logger.error(
+                        "Skipping remaining PDFs: PaddleOCR-VL failed to load earlier."
+                    )
+                    stats["failed"] += 1
+                    continue
+                try:
+                    paddle_pipeline = self._load_paddle_pipeline()
+                except Exception as exc:
+                    paddle_load_error = exc
+                    logger.error(
+                        "Could not initialize PaddleOCR-VL: %s. "
+                        "Fix the install or set segmentation.engine to docling.",
+                        exc,
+                    )
+                    stats["failed"] += 1
+                    continue
+
             try:
-                paper = segment_paper(pdf_path, self.cfg)
+                paper = segment_paper(
+                    pdf_path,
+                    self.cfg,
+                    self.assets_root,
+                    paddle_pipeline=paddle_pipeline,
+                )
                 self._save(paper)
 
                 stats[paper.extraction_status] = stats.get(paper.extraction_status, 0) + 1

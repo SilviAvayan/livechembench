@@ -17,13 +17,20 @@ def main():
         action="store_true",
         help="Run the download pipeline to fetch new papers (default action).",
     )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=None,
+        metavar="N",
+        help="With --segment, only process the first N PDFs (sorted by path). Omit to process all.",
+    )
     args = parser.parse_args()
 
     try:
         if args.segment:
             from src.services.segment_pipeline import SegmentPipeline
             pipeline = SegmentPipeline()
-            pipeline.run()
+            pipeline.run(limit=args.limit)
         else:
             # Default: run download pipeline
             from src.services.pipeline import DownloadPipeline
