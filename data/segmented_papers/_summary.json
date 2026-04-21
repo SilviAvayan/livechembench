@@ -1,0 +1,11 @@
+{
+  "total": 5,
+  "success": 0,
+  "partial": 4,
+  "failed": 0,
+  "skipped": 1,
+  "total_raw_chars": 58980,
+  "total_compressed_chars": 66907,
+  "compression_ratio": "113.4%",
+  "elapsed_seconds": 1268.1
+}
