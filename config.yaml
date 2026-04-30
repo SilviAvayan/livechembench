@@ -43,3 +43,50 @@ segmentation:
     - "final remarks"
     - "summary and outlook"
     - "outlook"
+
+agents:
+  # NVIDIA inference API (OpenAI-compatible)
+  api_key: "${NVIDIA_API_KEY}"
+  base_url: "https://integrate.api.nvidia.com/v1"
+  primary_model: "nvidia/llama-3.1-nemotron-ultra-253b-v1"
+
+  novelty_selector:
+    top_k: 5                  # pick the N most novel papers
+    temperature: 0.3
+    max_tokens: 1024
+
+  entity_extractor:
+    temperature: 0.2
+    max_tokens: 2048
+    pubchem_timeout: 10       # seconds per PubChem REST call
+    max_entities_per_paper: 20
+
+  question_proposer:
+    questions_per_paper: 5
+    question_types:
+      - multiple_choice
+      - free_text
+      - numerical
+    temperature: 0.7
+    max_tokens: 4096
+
+  tri_critic:
+    max_iterations: 3
+    temperature: 0.4
+    max_tokens: 2048
+
+  evaluator:
+    temperature: 0.0
+    max_tokens: 512
+    baseline_models:
+      - name: "nvidia/llama-3.1-nemotron-ultra-253b-v1"
+        base_url: "https://integrate.api.nvidia.com/v1"
+      - name: "nvidia/openai/gpt-oss-120b"
+        base_url: "https://inference-api.nvidia.com"
+
+output:
+  dataset_jsonl: "data/output/dataset.jsonl"
+  provenance_jsonl: "data/output/provenance.jsonl"
+  verifier_configs: "data/output/verifier_configs.json"
+  leaderboard_json: "data/output/leaderboard.json"
+  leaderboard_md: "data/output/leaderboard.md"
