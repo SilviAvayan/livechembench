@@ -1,0 +1,47 @@
+# Lightweight checks: no Paddle/PaddleOCR in CI (optional local install for segmentation).
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  config-and-imports:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install base dependencies
+        run: pip install -r requirements.txt
+
+      - name: Validate config schema
+        run: |
+          python -c "
+          import sys
+          from pathlib import Path
+          import yaml
+          sys.path.insert(0, str(Path('.').resolve()))
+          from src.config.models import AppConfig
+          data = yaml.safe_load(Path('config.yaml').read_text(encoding='utf-8'))
+          AppConfig.model_validate(data)
+          print('config schema: ok')
+          "
+
+      - name: Import agent package (no model download)
+        run: |
+          python -c "
+          import sys
+          from pathlib import Path
+          sys.path.insert(0, str(Path('.').resolve()))
+          from src.agent.workflow import WorkflowDefinition
+          from src.agent.presets import ingest_then_segment
+          wf = ingest_then_segment(segment_limit=None, segment_offset=0)
+          assert wf.name == 'ingest_then_segment'
+          print('agent presets: ok')
+          "

@@ -1,9 +1,67 @@
+# Python
 __pycache__/
 *.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
 
-# Downloaded PDFs / datasets (do not commit)
-data/raw_papers/
-
-# Local virtualenvs
+# Virtual environments
 .venv/
 venv/
+env/
+micromamba/
+conda-meta/
+
+# IDE / OS
+.DS_Store
+**/.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+.cursor/
+
+# Claude Code worktrees and memory
+.claude/
+.claire/
+
+# Raw PDFs (large, not version-controlled)
+data/raw_papers/
+data/raw_papers.zip
+
+# Segmented paper JSONs (large, regenerable outputs)
+data/segmented_papers/
+data/segmented_papers/*.json
+
+# Pipeline intermediate outputs (regenerable)
+data/evaluations/
+data/proposed_questions/
+data/critiques/
+data/repaired_questions/
+data/selected_questions/
+data/verification/
+data/eval_results/
+data/runs/
+
+# Final benchmark snapshots — TRACK THESE in git
+# (do not add data/benchmark/ to this file)
+
+# Logs
+*.log
+nohup.out
+segment_three_papers.log
+
+# Jupyter
+.ipynb_checkpoints/
+colab_segmentation.ipynb
+
+# Environment files (never commit secrets)
+.env
+.env.*
+!.env.example
+
+# Misc
+*.zip

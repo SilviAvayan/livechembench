@@ -1,0 +1,101 @@
+{
+  "name": "LiveChemBench",
+  "version": "0.1.0",
+  "created_at": "2026-05-03T17:24:40.244042+00:00",
+  "stats": {
+    "total": 5,
+    "by_type": {
+      "T2": 2,
+      "T1": 2,
+      "T3": 1
+    },
+    "by_paper": {
+      "pmc_12987937": 2,
+      "pubmed_12478036": 3
+    },
+    "by_answer_type": {
+      "int": 2,
+      "string": 1,
+      "choice": 1,
+      "float": 1
+    }
+  },
+  "questions": [
+    {
+      "id": "lcb_0001",
+      "paper_id": "pmc_12987937",
+      "question_text": "How many rotatable bonds are present in the structure of andrographolide (SMILES: CC1=CC2C(C1=C)CC3(C(C2(C)O)CCC4C3(CCC(C4)O)C)O)?",
+      "answer": "1",
+      "answer_type": "int",
+      "answer_units": null,
+      "tolerance": null,
+      "question_type": "T2",
+      "chemical_entities": [
+        "andrographolide"
+      ],
+      "verification_recipe": "Use RDKit to calculate the number of rotatable bonds for the provided SMILES string.",
+      "source_segment": "abstract"
+    },
+    {
+      "id": "lcb_0002",
+      "paper_id": "pmc_12987937",
+      "question_text": "How many aromatic atoms are present in the structure of andrographolide (SMILES: CC1=CC2C(C1=C)CC3(C(C2(C)O)CCC4C3(CCC(C4)O)C)O)?",
+      "answer": "0",
+      "answer_type": "int",
+      "answer_units": null,
+      "tolerance": null,
+      "question_type": "T2",
+      "chemical_entities": [
+        "andrographolide"
+      ],
+      "verification_recipe": "Use RDKit to count the number of aromatic atoms in the provided SMILES string.",
+      "source_segment": "abstract"
+    },
+    {
+      "id": "lcb_0003",
+      "paper_id": "pubmed_12478036",
+      "question_text": "What is the molecular formula of GSK'872 (PubChem CID 53306024)?",
+      "answer": "C21H18N4O2S",
+      "answer_type": "string",
+      "answer_units": null,
+      "tolerance": null,
+      "question_type": "T1",
+      "chemical_entities": [
+        "GSK'872"
+      ],
+      "verification_recipe": "Retrieve the molecular formula for GSK'872 (PubChem CID 53306024) via PubChem API.",
+      "source_segment": "key_points"
+    },
+    {
+      "id": "lcb_0004",
+      "paper_id": "pubmed_12478036",
+      "question_text": "Between the necroptosis inhibitors Nec-1s (SMILES: O=C(Nc1ccc(cc1)C(=O)N2CCC(CC2)C)c3ccc(cc3)Br) and GSK'872 (SMILES: CC1=CC(=C(S1)C(=O)Nc2ccc(cc2)C3=NN(C(=O)C3)C)C), which molecule has a higher number of rotatable bonds?",
+      "answer": "Nec-1s",
+      "answer_type": "choice",
+      "answer_units": null,
+      "tolerance": null,
+      "question_type": "T3",
+      "chemical_entities": [
+        "Nec-1s",
+        "GSK'872"
+      ],
+      "verification_recipe": "Use RDKit to calculate the number of rotatable bonds for both SMILES strings and compare the values.",
+      "source_segment": "key_points"
+    },
+    {
+      "id": "lcb_0005",
+      "paper_id": "pubmed_12478036",
+      "question_text": "What is the exact monoisotopic mass of the necroptosis inhibitor Nec-1s (SMILES: O=C(Nc1ccc(cc1)C(=O)N2CCC(CC2)C)c3ccc(cc3)Br)? Answer in Da, rounded to 4 decimal places.",
+      "answer": "400.0841",
+      "answer_type": "float",
+      "answer_units": "Da",
+      "tolerance": 0.01,
+      "question_type": "T1",
+      "chemical_entities": [
+        "Nec-1s"
+      ],
+      "verification_recipe": "Calculate the exact monoisotopic mass from the provided SMILES using RDKit.",
+      "source_segment": "key_points"
+    }
+  ]
+}
