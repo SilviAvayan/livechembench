@@ -505,6 +505,8 @@ def segment_paper(
     cfg: SegmentationConfig,
     assets_root: Optional[Path] = None,
     paddle_pipeline: Any = None,
+    layout_root: Optional[Path] = None,
+    layout_model: Any = None,
 ) -> SegmentedPaper:
     pdf_path = Path(pdf_path)
     if cfg.engine == "docling":
