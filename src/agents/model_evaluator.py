@@ -105,10 +105,15 @@ def _score(extracted: str, expected: str, q: BenchmarkQuestion) -> bool:
         except ValueError:
             return e_str.lower() == x_str.lower()
 
-    # string / choice — case-insensitive, also accept if expected is substring of extracted
+    # string / choice — blank response never counts as correct
+    if not e_str:
+        return False
     if e_str.lower() == x_str.lower():
         return True
-    return x_str.lower() in e_str.lower() or e_str.lower() in x_str.lower()
+    # Accept if expected value appears inside extracted text (e.g. "The answer is UDMA")
+    # but NOT the reverse — a short extracted answer appearing inside a long expected
+    # string would be a false positive (e.g. '' in 'UDMA').
+    return x_str.lower() in e_str.lower()
 
 
 # ---------------------------------------------------------------------------
@@ -139,7 +144,21 @@ def evaluate(
                     {"role": "user", "content": q.question},
                 ],
             )
-            raw = response.choices[0].message.content.strip()
+            msg = response.choices[0].message
+            raw = msg.content
+            if raw is None:
+                # Some models (e.g. reasoning/MoE models) put the answer in a
+                # non-standard field or return structured output.  Try known
+                # alternate fields before falling back to empty.
+                raw = getattr(msg, "reasoning_content", None) or ""
+                if raw:
+                    logger.info("  %s content=None; fell back to reasoning_content", q.id)
+                else:
+                    logger.warning(
+                        "  %s content=None, finish_reason=%s — recording as blank",
+                        q.id, response.choices[0].finish_reason,
+                    )
+            raw = raw.strip()
         except Exception as exc:
             logger.error("  %s API error: %s", q.id, exc)
             raw = ""
