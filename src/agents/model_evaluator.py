@@ -224,13 +224,15 @@ def run(
     output_dir: Path,
     model_override: Optional[str] = None,
     question_id: Optional[str] = None,
+    base_url: str = "https://inference-api.nvidia.com/v1",
+    api_key_env: str = "NVIDIA_API_KEY",
 ) -> EvalReport:
-    api_key = os.environ.get("NVIDIA_API_KEY")
+    api_key = os.environ.get(api_key_env)
     if not api_key:
-        raise EnvironmentError("NVIDIA_API_KEY environment variable is not set.")
+        raise EnvironmentError(f"{api_key_env} environment variable is not set.")
 
     cfg = _load_prompt_config(model_override)
-    client = OpenAI(api_key=api_key, base_url="https://inference-api.nvidia.com/v1")
+    client = OpenAI(api_key=api_key, base_url=base_url)
 
     benchmark = LiveChemBench.model_validate_json(benchmark_path.read_text())
     report = evaluate(benchmark, client, cfg, question_id=question_id)
@@ -249,7 +251,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--benchmark",
-        default=str(_REPO_ROOT / "data" / "benchmark" / "livechembench_v0.1.0.json"),
+        default=str(_REPO_ROOT / "data" / "benchmark" / "livechembench_v0.3.0.json"),
     )
     parser.add_argument(
         "--output-dir",
@@ -258,12 +260,22 @@ def main() -> None:
     parser.add_argument(
         "--model",
         default=None,
-        help="Override the model in model_evaluator.yaml (e.g. gcp/google/gemini-2.0-flash).",
+        help="Model ID to evaluate, e.g. 'nvidia/openai/gpt-oss-120b'.",
+    )
+    parser.add_argument(
+        "--base-url",
+        default="https://inference-api.nvidia.com/v1",
+        help="OpenAI-compatible API base URL (default: NVIDIA Inference API).",
+    )
+    parser.add_argument(
+        "--api-key-env",
+        default="NVIDIA_API_KEY",
+        help="Name of the environment variable holding the API key (default: NVIDIA_API_KEY).",
     )
     parser.add_argument(
         "--question-id",
         default=None,
-        help="Evaluate a single question by ID (e.g. lcb_0001).",
+        help="Evaluate a single question by ID (e.g. 2026-05_001).",
     )
     args = parser.parse_args()
 
@@ -272,6 +284,8 @@ def main() -> None:
         output_dir=Path(args.output_dir),
         model_override=args.model,
         question_id=args.question_id,
+        base_url=args.base_url,
+        api_key_env=args.api_key_env,
     )
 
 

@@ -1,0 +1,280 @@
+{
+  "name": "LiveChemBench",
+  "version": "0.3.0",
+  "created_at": "2026-05-04T14:56:31.681182+00:00",
+  "stats": {
+    "total": 7,
+    "by_type": {
+      "T2": 5,
+      "T3": 2
+    },
+    "by_paper": {
+      "source:pmc:12987923": 2,
+      "source:pmc:12987937": 1,
+      "source:pubmed:12478176": 2,
+      "source:pubmed:12987816": 2
+    },
+    "by_answer_type": {
+      "int": 5,
+      "choice": 2
+    }
+  },
+  "questions": [
+    {
+      "id": "2026-05_001",
+      "paper_id": "source:pmc:12987923",
+      "segment_id": "abstract",
+      "cid": 3467,
+      "question": "How many rotatable bonds are present in kaempferol (SMILES: C1=CC(=CC=C1C2=C(C(=O)C3=C(C=C(C=C3O2)O)O)O)O) according to the RDKit default definition?",
+      "answer": "1",
+      "answer_type": "int",
+      "tolerance": null,
+      "verifier": {
+        "type": "rdkit",
+        "recipe": {
+          "endpoint": null,
+          "field": null,
+          "function": "Chem.rdMolDescriptors",
+          "input": "smiles",
+          "description": "RDKit Chem.rdMolDescriptors.CalcNumRotatableBonds(mol) on SMILES C1=CC(=CC=C1C2=C(C(=O)C3=C(C=C(C=C3O2)O)O)O)O"
+        }
+      },
+      "filters": {
+        "ill_defined": false,
+        "missing_conditions": [],
+        "guessable": false
+      },
+      "provenance": {
+        "month": "2026-05",
+        "paper_source": "pmc",
+        "conversion_tool": "paddle_vl",
+        "pubchem_query_log_hash": "1dcc321942a87acf"
+      },
+      "question_type": "T2",
+      "chemical_entities": [
+        "kaempferol"
+      ],
+      "answer_units": null
+    },
+    {
+      "id": "2026-05_002",
+      "paper_id": "source:pmc:12987923",
+      "segment_id": "abstract",
+      "cid": 3467,
+      "question": "Between arbutin (SMILES: C1=CC(=CC=C1O[C@H]2[C@@H]([C@H]([C@@H]([C@H](O2)CO)O)O)O)O, PubChem CID 440934) and kaempferol (SMILES: C1=CC(=CC=C1C2=C(C(=O)C3=C(C=C(C=C3O2)O)O)O)O, PubChem CID 5280863), which compound has a higher number of aromatic atoms as defined by RDKit?",
+      "answer": "kaempferol",
+      "answer_type": "choice",
+      "tolerance": null,
+      "verifier": {
+        "type": "hybrid",
+        "recipe": {
+          "endpoint": null,
+          "field": null,
+          "function": null,
+          "input": null,
+          "description": "RDKit Chem.rdMolDescriptors.CalcNumAromaticAtoms(mol) for both SMILES; compare results."
+        }
+      },
+      "filters": {
+        "ill_defined": false,
+        "missing_conditions": [],
+        "guessable": false
+      },
+      "provenance": {
+        "month": "2026-05",
+        "paper_source": "pmc",
+        "conversion_tool": "paddle_vl",
+        "pubchem_query_log_hash": "1dcc321942a87acf"
+      },
+      "question_type": "T3",
+      "chemical_entities": [
+        "arbutin",
+        "kaempferol",
+        "CID 440934",
+        "CID 5280863"
+      ],
+      "answer_units": null
+    },
+    {
+      "id": "2026-05_003",
+      "paper_id": "source:pmc:12987937",
+      "segment_id": "key_points",
+      "cid": 71595676,
+      "question": "Andrographolide is the primary bioactive component in the ASFH hydrogel. Using its canonical SMILES (CC1=CC2C(C1=C)CC3(C(C2(C)O)CCC4C3(CCC(C4)O)C)O), how many stereocenters are present in the molecule?",
+      "answer": "8",
+      "answer_type": "int",
+      "tolerance": null,
+      "verifier": {
+        "type": "rdkit",
+        "recipe": {
+          "endpoint": null,
+          "field": null,
+          "function": "Chem.MolFromSmiles",
+          "input": "smiles",
+          "description": "Use RDKit: mol = Chem.MolFromSmiles('CC1=CC2C(C1=C)CC3(C(C2(C)O)CCC4C3(CCC(C4)O)C)O'); Chem.FindMolChiralCenters(mol, includeUnassigned=True) and count the entries."
+        }
+      },
+      "filters": {
+        "ill_defined": false,
+        "missing_conditions": [],
+        "guessable": false
+      },
+      "provenance": {
+        "month": "2026-05",
+        "paper_source": "pmc",
+        "conversion_tool": "paddle_vl",
+        "pubchem_query_log_hash": "2596b4f10a4a2b16"
+      },
+      "question_type": "T2",
+      "chemical_entities": [
+        "andrographolide"
+      ],
+      "answer_units": null
+    },
+    {
+      "id": "2026-05_004",
+      "paper_id": "source:pubmed:12478176",
+      "segment_id": "abstract",
+      "cid": 5288144,
+      "question": "How many rotatable bonds does Istaroxime (SMILES: CC12CCC3C(C1CCC2O)CCC4(C3(CCC4C5=CC(=O)OCC5)O)C) have, as calculated by RDKit?",
+      "answer": "1",
+      "answer_type": "int",
+      "tolerance": null,
+      "verifier": {
+        "type": "rdkit",
+        "recipe": {
+          "endpoint": null,
+          "field": null,
+          "function": "Chem.rdMolDescriptors",
+          "input": "smiles",
+          "description": "RDKit Chem.rdMolDescriptors.CalcNumRotatableBonds(mol) on SMILES: CC12CCC3C(C1CCC2O)CCC4(C3(CCC4C5=CC(=O)OCC5)O)C"
+        }
+      },
+      "filters": {
+        "ill_defined": false,
+        "missing_conditions": [],
+        "guessable": false
+      },
+      "provenance": {
+        "month": "2026-05",
+        "paper_source": "pubmed",
+        "conversion_tool": "paddle_vl",
+        "pubchem_query_log_hash": "335d522c9231f3c9"
+      },
+      "question_type": "T2",
+      "chemical_entities": [
+        "Istaroxime"
+      ],
+      "answer_units": null
+    },
+    {
+      "id": "2026-05_005",
+      "paper_id": "source:pubmed:12478176",
+      "segment_id": "abstract",
+      "cid": 5288144,
+      "question": "How many aromatic atoms are present in the structure of Istaroxime (SMILES: CC12CCC3C(C1CCC2O)CCC4(C3(CCC4C5=CC(=O)OCC5)O)C)?",
+      "answer": "0",
+      "answer_type": "int",
+      "tolerance": null,
+      "verifier": {
+        "type": "rdkit",
+        "recipe": {
+          "endpoint": null,
+          "field": null,
+          "function": "Chem.rdMolDescriptors",
+          "input": "smiles",
+          "description": "RDKit Chem.rdMolDescriptors.CalcNumAromaticAtoms(mol) on SMILES: CC12CCC3C(C1CCC2O)CCC4(C3(CCC4C5=CC(=O)OCC5)O)C"
+        }
+      },
+      "filters": {
+        "ill_defined": false,
+        "missing_conditions": [],
+        "guessable": false
+      },
+      "provenance": {
+        "month": "2026-05",
+        "paper_source": "pubmed",
+        "conversion_tool": "paddle_vl",
+        "pubchem_query_log_hash": "335d522c9231f3c9"
+      },
+      "question_type": "T2",
+      "chemical_entities": [
+        "Istaroxime"
+      ],
+      "answer_units": null
+    },
+    {
+      "id": "2026-05_006",
+      "paper_id": "source:pubmed:12987816",
+      "segment_id": "tables",
+      "cid": 33775,
+      "question": "Using RDKit, calculate the number of rotatable bonds for Bis-GMA (2,2-bis[4-(2-hydroxy-3-methacryloyloxypropoxy)phenyl]propane), which has the SMILES: CC(C)(c1ccc(cc1)OCC(O)COC(=O)C(=C)C)c1ccc(cc1)OCC(O)COC(=O)C(=C)C.",
+      "answer": "14",
+      "answer_type": "int",
+      "tolerance": null,
+      "verifier": {
+        "type": "rdkit",
+        "recipe": {
+          "endpoint": null,
+          "field": null,
+          "function": "Chem.rdMolDescriptors",
+          "input": "smiles",
+          "description": "RDKit Chem.rdMolDescriptors.CalcNumRotatableBonds(Chem.MolFromSmiles('CC(C)(c1ccc(cc1)OCC(O)COC(=O)C(=C)C)c1ccc(cc1)OCC(O)COC(=O)C(=C)C'))"
+        }
+      },
+      "filters": {
+        "ill_defined": false,
+        "missing_conditions": [],
+        "guessable": false
+      },
+      "provenance": {
+        "month": "2026-05",
+        "paper_source": "pubmed",
+        "conversion_tool": "paddle_vl",
+        "pubchem_query_log_hash": "81c2a77126993e37"
+      },
+      "question_type": "T2",
+      "chemical_entities": [
+        "Bis-GMA"
+      ],
+      "answer_units": null
+    },
+    {
+      "id": "2026-05_007",
+      "paper_id": "source:pubmed:12987816",
+      "segment_id": "tables",
+      "cid": 33775,
+      "question": "Between TEGDMA (Triethylene glycol dimethacrylate, SMILES: CC(=C)C(=O)OCCOCCOCCOC(=O)C(=C)C) and UDMA (Urethane dimethacrylate, SMILES: CC(=C)C(=O)OCCNC(=O)OC(C)CC(C)CC(C)(CC(C)OC(=O)NC)OC(=O)C(=C)C), which molecule has a higher number of rotatable bonds as computed by RDKit?",
+      "answer": "UDMA",
+      "answer_type": "choice",
+      "tolerance": null,
+      "verifier": {
+        "type": "hybrid",
+        "recipe": {
+          "endpoint": null,
+          "field": null,
+          "function": null,
+          "input": null,
+          "description": "RDKit Chem.rdMolDescriptors.CalcNumRotatableBonds for both SMILES. TEGDMA: 11, UDMA: 14."
+        }
+      },
+      "filters": {
+        "ill_defined": false,
+        "missing_conditions": [],
+        "guessable": false
+      },
+      "provenance": {
+        "month": "2026-05",
+        "paper_source": "pubmed",
+        "conversion_tool": "paddle_vl",
+        "pubchem_query_log_hash": "81c2a77126993e37"
+      },
+      "question_type": "T3",
+      "chemical_entities": [
+        "TEGDMA",
+        "UDMA"
+      ],
+      "answer_units": null
+    }
+  ]
+}

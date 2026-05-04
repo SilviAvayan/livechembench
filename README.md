@@ -94,6 +94,16 @@ export NVIDIA_API_KEY="your_key_here"   # from build.nvidia.com
 
 ## Usage
 
+### One-shot scripts
+
+```bash
+# Generate questions from all segmented papers → data/benchmark/livechembench_v0.3.0.json
+bash run_pipeline.sh 0.3.0
+
+# Evaluate all available NVIDIA-hosted models against the benchmark
+bash eval_all_models.sh
+```
+
 ### Segment PDFs
 
 Place raw PDFs in `data/raw_papers/`, then run:
@@ -149,16 +159,36 @@ Every agent supports `--paper-id <id>` to process a single paper and `--limit N`
 ### Evaluate an LLM
 
 ```bash
+# Evaluate a single model (default benchmark: latest v0.3.0)
 python -m src.agents.model_evaluator \
-    --benchmark data/benchmark/livechembench_v0.1.1.json
+    --model nvidia/openai/gpt-oss-120b
 
-# Override the model
+# Run all available models in one shot
+bash eval_all_models.sh
+
+# Use OpenAI / other OpenAI-compatible endpoints
 python -m src.agents.model_evaluator \
-    --benchmark data/benchmark/livechembench_v0.1.1.json \
-    --model gcp/google/gemini-2.0-flash
+    --model gpt-4o \
+    --base-url https://api.openai.com/v1 \
+    --api-key-env OPENAI_API_KEY
+
+# View results
+ls data/eval_results/*.json | xargs -I{} jq '{model:.model, acc:.scores.overall, n:.scores.n_total}' {}
 ```
 
-Output: `data/eval_results/v<version>_<model>.json` with accuracy broken down by question type (T1/T2/T3), answer type, and source paper.
+Output: `data/eval_results/v<version>_<model_slug>.json` with accuracy broken down by question type (T1/T2/T3), answer type, and source paper.
+
+#### Available evaluation models
+
+The pipeline agent uses `gcp/google/gemini-3.1-flash-lite-preview`; do **not** use that model for evaluation.
+
+| Model | Provider | Notes |
+|-------|----------|-------|
+| `nvidia/openai/gpt-oss-120b` | NVIDIA | GPT-OSS 120B |
+| `nvidia/qwen/qwen3-next-80b-a3b-instruct` | NVIDIA | Qwen3 80B MoE |
+| `nvidia/nvidia/Nemotron-3-Nano-30B-A3B` | NVIDIA | Nemotron 30B MoE |
+| `gpt-4o`, `gpt-4o-mini` | OpenAI | Needs `OPENAI_API_KEY` |
+| Claude (any) | Anthropic | Run manually via claude.ai or Anthropic SDK |
 
 ## Project structure
 
@@ -195,6 +225,22 @@ livechembench/
     └── benchmark/                    # versioned benchmark JSONs (tracked in git)
 ```
 
+## Current benchmark status
+
+**v0.3.0** — 7 verified questions from 4 papers (2 PMC, 2 PubMed):
+
+| ID | Type | Compound | Question |
+|----|------|----------|---------|
+| 2026-05_001 | T2 | kaempferol | Rotatable bonds (SMILES embedded) |
+| 2026-05_002 | T3 | arbutin vs kaempferol | Which has more aromatic atoms? |
+| 2026-05_003 | T2 | andrographolide | Number of stereocenters |
+| 2026-05_004 | T2 | Istaroxime | Rotatable bonds |
+| 2026-05_005 | T2 | Istaroxime | Aromatic atoms |
+| 2026-05_006 | T2 | Bis-GMA | Rotatable bonds |
+| 2026-05_007 | T3 | TEGDMA vs UDMA | Which has more rotatable bonds? |
+
+All answers are ground-truthed by RDKit. The dataset grows automatically as more papers are segmented and pass the full pipeline.
+
 ## Benchmark format
 
 `data/benchmark/livechembench_v<X.Y.Z>.json`:
@@ -202,22 +248,27 @@ livechembench/
 ```json
 {
   "name": "LiveChemBench",
-  "version": "0.1.1",
-  "created_at": "2026-05-03T21:36:20+00:00",
-  "stats": {"total": 3, "by_type": {"T1": 1, "T2": 1, "T3": 1}},
+  "version": "0.3.0",
+  "created_at": "2026-05-04T14:56:31+00:00",
+  "stats": {"total": 7, "by_type": {"T2": 5, "T3": 2}},
   "questions": [
     {
-      "id": "lcb_0001",
-      "paper_id": "pubmed_12478036",
-      "question_text": "...",
-      "answer": "...",
-      "answer_type": "float",
-      "answer_units": "Da",
-      "tolerance": 0.01,
-      "question_type": "T1",
-      "chemical_entities": ["Nec-1s"],
-      "verification_recipe": "PubChem CID 9908089 → exact_mass field",
-      "source_segment": "abstract"
+      "id": "2026-05_001",
+      "paper_id": "source:pmc:12987923",
+      "segment_id": "abstract",
+      "cid": 3467,
+      "question": "How many rotatable bonds are present in kaempferol (SMILES: ...)...",
+      "answer": "1",
+      "answer_type": "int",
+      "tolerance": null,
+      "verifier": {
+        "type": "rdkit",
+        "recipe": { "function": "Chem.rdMolDescriptors", "input": "smiles", "description": "..." }
+      },
+      "filters": { "ill_defined": false, "missing_conditions": [], "guessable": false },
+      "provenance": { "month": "2026-05", "paper_source": "pmc", "conversion_tool": "paddle_vl", "pubchem_query_log_hash": "..." },
+      "question_type": "T2",
+      "chemical_entities": ["kaempferol"]
     }
   ]
 }
