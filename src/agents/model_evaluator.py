@@ -136,7 +136,7 @@ def evaluate(
                 temperature=cfg["temperature"],
                 messages=[
                     {"role": "system", "content": cfg["system_prompt"]},
-                    {"role": "user", "content": q.question_text},
+                    {"role": "user", "content": q.question},
                 ],
             )
             raw = response.choices[0].message.content.strip()
@@ -157,7 +157,7 @@ def evaluate(
             paper_id=q.paper_id,
             question_type=q.question_type,
             answer_type=q.answer_type,
-            question_text=q.question_text,
+            question_text=q.question,
             expected_answer=q.answer,
             model_raw_response=raw,
             model_answer=extracted,

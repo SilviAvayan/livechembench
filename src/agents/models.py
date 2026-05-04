@@ -231,18 +231,51 @@ class SelectedPaperQuestions(BaseModel):
 # Dataset Builder models
 # ---------------------------------------------------------------------------
 
+class VerifierRecipe(BaseModel):
+    """Structured recipe describing how to programmatically verify the answer."""
+    endpoint: Optional[str] = Field(default=None, description="PubChem PUG REST endpoint template, e.g. '/compound/cid/{cid}/property/{prop}/JSON'.")
+    field: Optional[str] = Field(default=None, description="JSON field to extract from PubChem response, e.g. 'ExactMass'.")
+    function: Optional[str] = Field(default=None, description="RDKit function call, e.g. 'Chem.rdMolDescriptors.CalcNumRotatableBonds'.")
+    input: Optional[str] = Field(default=None, description="Input type for RDKit, e.g. 'smiles'.")
+    description: Optional[str] = Field(default=None, description="Free-text description of verification procedure.")
+
+
+class Verifier(BaseModel):
+    type: str = Field(description="Verification method: 'pubchem_pugrest', 'rdkit', or 'hybrid'.")
+    recipe: VerifierRecipe
+
+
+class Filters(BaseModel):
+    """Quality filter results from the critic pipeline."""
+    ill_defined: bool = Field(default=False, description="True if question failed the ill-defined critic (Critic 1).")
+    missing_conditions: List[str] = Field(default_factory=list, description="Conditions identified as missing by Critic 2.")
+    guessable: bool = Field(default=False, description="True if question failed the novelty/guessability check (Critic 3).")
+
+
+class Provenance(BaseModel):
+    """Source metadata for traceability."""
+    month: str = Field(description="Year-month of question generation, e.g. '2026-05'.")
+    paper_source: str = Field(description="Source repository: 'pubmed', 'chemrxiv', 'pmc', etc.")
+    conversion_tool: str = Field(default="paddle_vl", description="PDF-to-text tool used.")
+    pubchem_query_log_hash: Optional[str] = Field(default=None, description="SHA-256 hex digest of the sorted PubChem CID list queried for this question.")
+
+
 class BenchmarkQuestion(BaseModel):
-    id: str = Field(description="Unique question ID, e.g. 'lcb_0001'.")
-    paper_id: str = Field(description="Source paper identifier.")
-    question_text: str
+    id: str = Field(description="Unique question ID, e.g. '2026-05_001'.")
+    paper_id: str = Field(description="Source paper in 'source:TYPE:ID' format, e.g. 'source:chemrxiv:30467288'.")
+    segment_id: str = Field(description="Paper segment from which the question was derived, e.g. 'abstract' or 'tables'.")
+    cid: Optional[int] = Field(default=None, description="Primary PubChem Compound ID for the question's main chemical entity.")
+    question: str = Field(description="The full self-contained question text.")
     answer: str
     answer_type: AnswerType
-    answer_units: Optional[str] = None
     tolerance: Optional[float] = None
-    question_type: QuestionType
-    chemical_entities: List[str]
-    verification_recipe: str
-    source_segment: str
+    verifier: Verifier
+    filters: Filters
+    provenance: Provenance
+    # Internal fields retained for answer_verifier.py and model_evaluator.py
+    question_type: QuestionType = Field(description="Internal question category: T1, T2, or T3.")
+    chemical_entities: List[str] = Field(description="Chemical names, SMILES strings, or PubChem CIDs mentioned in the question.")
+    answer_units: Optional[str] = None
 
 
 class BenchmarkStats(BaseModel):

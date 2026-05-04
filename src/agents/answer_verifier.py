@@ -193,12 +193,12 @@ def _pubchem_fetch(identifier: str, by: str, prop_key: str) -> tuple[str, Option
 # ---------------------------------------------------------------------------
 
 def _verify_t1(q: BenchmarkQuestion) -> tuple[str, Optional[str]]:
-    prop = _detect_property(q.question_text)
+    prop = _detect_property(q.question)
     if not prop:
         return "", "Could not detect property from question text"
 
-    smiles = _extract_first_smiles(q.question_text)
-    cid = _extract_cid(q.question_text)
+    smiles = _extract_first_smiles(q.question)
+    cid = _extract_cid(q.question)
 
     # Prefer RDKit for properties it can compute reliably from SMILES
     rdkit_props = {"rotatable_bonds", "aromatic_atoms", "aromatic_rings",
@@ -225,11 +225,11 @@ def _verify_t1(q: BenchmarkQuestion) -> tuple[str, Optional[str]]:
 
 
 def _verify_t2(q: BenchmarkQuestion) -> tuple[str, Optional[str]]:
-    prop = _detect_property(q.question_text)
+    prop = _detect_property(q.question)
     if not prop:
         return "", "Could not detect property from question text"
 
-    smiles = _extract_first_smiles(q.question_text)
+    smiles = _extract_first_smiles(q.question)
     if not smiles:
         # Try chemical_entities for a SMILES string
         for entity in q.chemical_entities:
@@ -244,11 +244,11 @@ def _verify_t2(q: BenchmarkQuestion) -> tuple[str, Optional[str]]:
 
 
 def _verify_t3(q: BenchmarkQuestion) -> tuple[str, Optional[str]]:
-    prop = _detect_property(q.question_text)
+    prop = _detect_property(q.question)
     if not prop:
         return "", "Could not detect property"
 
-    pairs = _extract_smiles_pairs(q.question_text)
+    pairs = _extract_smiles_pairs(q.question)
     if len(pairs) < 2:
         return "", f"Expected 2 compound-SMILES pairs, found {len(pairs)}"
 
@@ -262,7 +262,7 @@ def _verify_t3(q: BenchmarkQuestion) -> tuple[str, Optional[str]]:
         except ValueError:
             return "", f"Non-numeric RDKit result for '{name}': {val_str}"
 
-    q_lower = q.question_text.lower()
+    q_lower = q.question.lower()
     if any(w in q_lower for w in ("higher", "more", "greater", "larger")):
         winner_name, _ = max(computed, key=lambda x: x[1])
     elif any(w in q_lower for w in ("lower", "fewer", "less", "smaller")):
