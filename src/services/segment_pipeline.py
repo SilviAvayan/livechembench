@@ -131,6 +131,196 @@ class SegmentPipeline:
     # Main entry point
     # ------------------------------------------------------------------
 
+    def run_specific(
+        self,
+        paper_ids: list[str],
+        per_pdf_timeout: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        """Run segmentation on an explicit list of paper IDs.
+
+        Each entry in ``paper_ids`` may be a bare stem (``pubmed_123``) or
+        include the extension (``pubmed_123.pdf``).  Papers not found in
+        ``raw_papers/`` are logged and skipped.
+        """
+        pdf_files = []
+        not_found = []
+        for pid in paper_ids:
+            stem = pid.removesuffix(".pdf").removesuffix(".PDF")
+            candidate = self.raw_path / f"{stem}.pdf"
+            if not candidate.exists():
+                candidate = self.raw_path / f"{stem}.PDF"
+            if candidate.exists():
+                pdf_files.append(candidate)
+            else:
+                not_found.append(pid)
+
+        if not_found:
+            logger.warning("Papers not found in %s: %s", self.raw_path, not_found)
+
+        if not pdf_files:
+            logger.warning("run_specific: none of the requested PDFs were found.")
+            return {"ok": True, "phase": "segmentation", "total": 0}
+
+        logger.info(
+            "=== SPECIFIC-PAPER SEGMENTATION: %d PDF(s) requested, %d found ===",
+            len(paper_ids),
+            len(pdf_files),
+        )
+        # Delegate to run() using the resolved paths by temporarily overriding
+        # the raw_path to a temp dir — simpler: just inline the loop via run()
+        # with an explicit file list passed through a one-shot limit/offset that
+        # covers all of them, after verifying they are the only files present.
+        # Cleanest approach: call the core processing logic directly.
+        return self._run_file_list(pdf_files, per_pdf_timeout=per_pdf_timeout)
+
+    def _run_file_list(
+        self,
+        pdf_files: list,
+        per_pdf_timeout: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        """Core processing loop over an explicit list of Path objects."""
+        from datetime import datetime, timezone
+
+        total = len(pdf_files)
+        started_at = datetime.now(timezone.utc).astimezone()
+        t_start = time.perf_counter()
+
+        logger.info(f"=== SEGMENTATION PIPELINE STARTING ===")
+        logger.info(f"Wall clock start: {started_at.isoformat(timespec='seconds')}")
+        logger.info(f"Engine: {self.cfg.engine}")
+        logger.info(f"Processing {total} PDF file(s)")
+        logger.info(f"Output directory: {self.out_path}")
+
+        if per_pdf_timeout:
+            logger.info(f"Per-PDF timeout: {_format_duration(per_pdf_timeout)}")
+
+        paddle_pipeline = self._paddle_pipeline
+        layout_model = self._layout_model
+        paddle_load_error = self._paddle_load_error
+
+        stats: Dict[str, int] = {
+            "success": 0, "partial": 0, "failed": 0, "skipped": 0, "timed_out": 0,
+        }
+        total_raw_chars = 0
+        total_compressed_chars = 0
+        processed_wall_times: list[float] = []
+
+        for idx, pdf_path in enumerate(pdf_files, start=1):
+            paper_id = pdf_path.stem
+            logger.info(f"[{idx}/{total}] Processing: {pdf_path.name}")
+
+            if self._already_done(paper_id):
+                logger.info(f"  → Already segmented, skipping.")
+                stats["skipped"] += 1
+                continue
+
+            engine = self.cfg.engine
+            needs_paddle = engine in ("paddle_layout_dual_vl", "paddle_vl")
+            needs_layout = engine == "paddle_layout_dual_vl"
+
+            if needs_paddle and paddle_pipeline is None:
+                if paddle_load_error is not None:
+                    logger.error("Skipping: Paddle pipeline failed to load earlier.")
+                    stats["failed"] += 1
+                    continue
+                try:
+                    if engine == "paddle_layout_dual_vl":
+                        paddle_pipeline = self._load_dual_vl_pipeline()
+                    else:
+                        paddle_pipeline = self._load_paddle_vl_pipeline()
+                    self._paddle_pipeline = paddle_pipeline
+                except Exception as exc:
+                    paddle_load_error = exc
+                    self._paddle_load_error = exc
+                    logger.error("Could not initialize PaddleOCR-VL: %s.", exc)
+                    stats["failed"] += 1
+                    continue
+
+            if needs_layout and layout_model is None:
+                try:
+                    layout_model = self._load_layout_model()
+                    self._layout_model = layout_model
+                except Exception as exc:
+                    paddle_load_error = exc
+                    self._paddle_load_error = exc
+                    logger.error("Could not initialize PP-DocLayoutV3: %s.", exc)
+                    stats["failed"] += 1
+                    continue
+
+            try:
+                t0 = time.perf_counter()
+                if per_pdf_timeout:
+                    signal.signal(signal.SIGALRM, _alarm_handler)
+                    signal.alarm(per_pdf_timeout)
+                try:
+                    paper = segment_paper(
+                        pdf_path, self.cfg, self.assets_root,
+                        layout_root=self.layout_root,
+                        paddle_pipeline=paddle_pipeline,
+                        layout_model=layout_model,
+                    )
+                    self._save(paper)
+                finally:
+                    if per_pdf_timeout:
+                        signal.alarm(0)
+
+                wall = time.perf_counter() - t0
+                processed_wall_times.append(wall)
+                stats[paper.extraction_status] = stats.get(paper.extraction_status, 0) + 1
+                total_raw_chars += paper.raw_char_count
+                total_compressed_chars += paper.compressed_char_count
+                ratio = (
+                    f"{100 * paper.compressed_char_count / paper.raw_char_count:.1f}%"
+                    if paper.raw_char_count > 0 else "N/A"
+                )
+                logger.info(
+                    f"  → [{paper.extraction_status.upper()}] "
+                    f"sections={paper.section_count}, raw={paper.raw_char_count:,}, "
+                    f"compressed={paper.compressed_char_count:,} ({ratio})"
+                )
+                logger.info(f"  → Time this PDF: {_format_duration(wall)}")
+
+            except _PdfTimeout:
+                wall = time.perf_counter() - t0
+                logger.warning(
+                    f"  → TIMEOUT after {_format_duration(wall)}: {pdf_path.name} "
+                    f"exceeded {_format_duration(per_pdf_timeout)}. Resetting pipeline."
+                )
+                stats["timed_out"] += 1
+                paddle_pipeline = None
+                self._paddle_pipeline = None
+                layout_model = None
+                self._layout_model = None
+
+            except Exception as exc:
+                logger.error(f"  → UNEXPECTED ERROR for {pdf_path.name}: {exc}")
+                stats["failed"] += 1
+
+        elapsed = time.perf_counter() - t_start
+        finished_at = datetime.now(timezone.utc).astimezone()
+        logger.info("=" * 60)
+        logger.info("SEGMENTATION COMPLETE")
+        logger.info("=" * 60)
+        logger.info(f"  Elapsed: {_format_duration(elapsed)} | "
+                    f"Success: {stats['success']} | Partial: {stats['partial']} | "
+                    f"Failed: {stats['failed']} | Timed out: {stats['timed_out']} | "
+                    f"Skipped: {stats['skipped']}")
+        logger.info("=" * 60)
+
+        summary = {
+            "ok": True, "phase": "segmentation",
+            "started_at": started_at.isoformat(timespec="seconds"),
+            "finished_at": finished_at.isoformat(timespec="seconds"),
+            "total": total, **stats,
+            "total_raw_chars": total_raw_chars,
+            "total_compressed_chars": total_compressed_chars,
+            "elapsed_seconds": round(elapsed, 1),
+        }
+        summary_path = self.out_path / "_summary.json"
+        with open(summary_path, "w", encoding="utf-8") as f:
+            json.dump(summary, f, indent=2)
+        return summary
+
     def run_batched(
         self,
         batch_size: int,
