@@ -94,11 +94,14 @@ def _extract_entities(paper: dict) -> list[str]:
         paper.get("conclusion") or "",
         " ".join(paper.get("key_points") or []),
     ]
-    # Include table cell content
+    # Include table cell content — entries may be dicts with "rows" or plain strings
     for table in paper.get("tables") or []:
-        for row in table.get("rows") or []:
-            if row:
-                entities.add(str(row[0]).strip())
+        if isinstance(table, str):
+            text_fields.append(table)
+        elif isinstance(table, dict):
+            for row in table.get("rows") or []:
+                if row:
+                    entities.add(str(row[0]).strip())
 
     full_text = " ".join(text_fields)
 
