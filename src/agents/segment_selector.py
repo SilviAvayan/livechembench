@@ -175,12 +175,17 @@ def score_segments(paper: dict, rewards: dict, top_k: Optional[int] = None) -> l
             "type": "section",
         })
 
-    # Tables
+    # Tables — entries may be dicts with "rows" or plain strings
     for i, table in enumerate(paper.get("tables") or []):
-        table_text = " ".join(
-            " ".join(str(cell) for cell in row)
-            for row in (table.get("rows") or [])
-        )
+        if isinstance(table, str):
+            table_text = table
+        elif isinstance(table, dict):
+            table_text = " ".join(
+                " ".join(str(cell) for cell in row)
+                for row in (table.get("rows") or [])
+            )
+        else:
+            table_text = str(table)
         raw_segments.append({
             "title": f"table_{i}",
             "content": table_text,
