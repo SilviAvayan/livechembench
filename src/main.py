@@ -65,6 +65,17 @@ def main():
             "for the next file. Omit to disable the timeout."
         ),
     )
+    parser.add_argument(
+        "--papers",
+        type=str,
+        default=None,
+        metavar="IDS",
+        help=(
+            "With --segment: comma-separated list of paper IDs (filenames with or "
+            "without .pdf extension) to process. Ignores --offset, --limit, and "
+            "--batch-size when set."
+        ),
+    )
     args = parser.parse_args()
 
     try:
@@ -97,7 +108,13 @@ def main():
 
             timeout_secs = args.timeout * 60 if args.timeout else None
             pipeline = SegmentPipeline()
-            if args.batch_size is not None:
+            if args.papers is not None:
+                paper_ids = [p.strip() for p in args.papers.split(",") if p.strip()]
+                pipeline.run_specific(
+                    paper_ids=paper_ids,
+                    per_pdf_timeout=timeout_secs,
+                )
+            elif args.batch_size is not None:
                 if args.batch_size < 1:
                     logger.error("--batch-size must be a positive integer.")
                     sys.exit(1)
