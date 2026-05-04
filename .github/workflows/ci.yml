@@ -1,4 +1,5 @@
-# Lightweight checks: no Paddle/PaddleOCR in CI (optional local install for segmentation).
+# Lightweight CI: validates imports and Pydantic models.
+# No Paddle/PaddleOCR (GPU required), no docling, no LLM calls.
 name: CI
 
 on:
@@ -8,7 +9,7 @@ on:
     branches: [main]
 
 jobs:
-  config-and-imports:
+  lint-and-imports:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,31 +18,67 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install base dependencies
-        run: pip install -r requirements.txt
+      - name: Install dependencies
+        run: pip install pydantic>=2.0.0 pyyaml openai requests
 
-      - name: Validate config schema
+      - name: Validate Pydantic models
         run: |
           python -c "
           import sys
           from pathlib import Path
-          import yaml
           sys.path.insert(0, str(Path('.').resolve()))
-          from src.config.models import AppConfig
-          data = yaml.safe_load(Path('config.yaml').read_text(encoding='utf-8'))
-          AppConfig.model_validate(data)
-          print('config schema: ok')
+          from src.agents.models import (
+              PaperQualityEvaluation, PaperQuestions, CandidateQuestion,
+              PaperCritiqueReport, RepairedPaperQuestions, SelectedPaperQuestions,
+              LiveChemBench, VerificationReport, EvalReport,
+          )
+          print('models: ok')
           "
 
-      - name: Import agent package (no model download)
+      - name: Validate agent imports
         run: |
           python -c "
           import sys
           from pathlib import Path
           sys.path.insert(0, str(Path('.').resolve()))
-          from src.agent.workflow import WorkflowDefinition
-          from src.agent.presets import ingest_then_segment
-          wf = ingest_then_segment(segment_limit=None, segment_offset=0)
-          assert wf.name == 'ingest_then_segment'
-          print('agent presets: ok')
+          import src.agents.paper_quality_evaluator
+          import src.agents.question_proposer
+          import src.agents.critics
+          import src.agents.question_repairer
+          import src.agents.novelty_selector
+          import src.agents.dataset_builder
+          import src.agents.answer_verifier
+          import src.agents.model_evaluator
+          print('all agents: ok')
+          "
+
+      - name: Validate prompt configs
+        run: |
+          python -c "
+          import yaml
+          from pathlib import Path
+          required = [
+              'paper_quality_evaluator', 'question_proposer',
+              'critic_ill_defined', 'critic_missing_conditions',
+              'critic_novelty', 'question_repairer', 'model_evaluator',
+          ]
+          for name in required:
+              p = Path('prompts') / f'{name}.yaml'
+              assert p.exists(), f'Missing prompt: {p}'
+              cfg = yaml.safe_load(p.read_text())
+              assert 'model' in cfg, f'Missing model in {p}'
+              assert 'system_prompt' in cfg, f'Missing system_prompt in {p}'
+          print('prompts: ok')
+          "
+
+      - name: Validate benchmark JSON
+        run: |
+          python -c "
+          import sys
+          from pathlib import Path
+          sys.path.insert(0, str(Path('.').resolve()))
+          from src.agents.models import LiveChemBench
+          for f in sorted(Path('data/benchmark').glob('*.json')):
+              b = LiveChemBench.model_validate_json(f.read_text())
+              print(f'{f.name}: {b.stats.total} question(s) ok')
           "
