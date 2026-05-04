@@ -63,7 +63,7 @@ class PaperQualityEvaluation(BaseModel):
 class QuestionType(str, Enum):
     T1 = "T1"  # PubChem property query
     T2 = "T2"  # RDKit structural reasoning
-    T3 = "T3"  # Contrastive / comparative
+    T3 = "T3"  # Segment-anchored contrastive / comparative
 
 
 class AnswerType(str, Enum):
@@ -85,7 +85,7 @@ class CandidateQuestion(BaseModel):
     )
     question_type: QuestionType = Field(description="T1, T2, or T3.")
     chemical_entities: List[str] = Field(
-        description="Chemical names or SMILES strings mentioned in the question."
+        description="Chemical names, SMILES strings, or PubChem CIDs mentioned in the question."
     )
     verification_recipe: str = Field(
         description="How to programmatically verify the answer (RDKit, PubChem API, or direct comparison)."
@@ -124,6 +124,10 @@ class CriticResult(BaseModel):
     )
     reason: str = Field(
         description="Concise explanation of the verdict (1-3 sentences)."
+    )
+    missing_conditions: Optional[List[str]] = Field(
+        default=None,
+        description="For missing_conditions critic: structured list of what must be added to the question."
     )
     suggested_fix: Optional[str] = Field(
         default=None,
