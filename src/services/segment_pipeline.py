@@ -579,9 +579,7 @@ class SegmentPipeline:
                         pdf_path,
                         self.cfg,
                         self.assets_root,
-                        layout_root=self.layout_root,
                         paddle_pipeline=paddle_pipeline,
-                        layout_model=layout_model,
                     )
                     self._save(paper)
                 finally:
