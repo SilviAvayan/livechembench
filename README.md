@@ -241,6 +241,65 @@ livechembench/
 
 All answers are ground-truthed by RDKit. The dataset grows automatically as more papers are segmented and pass the full pipeline.
 
+---
+
+## Proposer-bias experiment (recommended follow-up after the presentation)
+
+After the initial presentation we ran a controlled experiment to test whether benchmark scores are
+inflated for whichever model *generated* the questions — a form of **proposer-model bias** that
+could make a leaderboard misleading.
+
+### What we did
+
+We regenerated questions for the same 4 papers that contributed to `v0.3.0`, but swapped the
+proposer from **Gemini Flash-Lite** to **`nvidia/openai/gpt-oss-120b`**, producing benchmark
+**`v0.6.0`**. All downstream agents (critics, repairer, novelty selector, answer verifier) were
+kept on Gemini Flash-Lite to isolate the proposer as the only changed variable. We then evaluated
+the same 4 models on both benchmarks.
+
+### Results
+
+| Model | v0.3.0 (Gemini-proposed, n=7) | v0.6.0 (GPT-proposed, n=2) | Δ |
+|---|---|---|---|
+| **Gemini Flash-Lite** | **85.7%** | 0.0% | −85.7% |
+| GPT-oss-120b | 42.9% | 0.0% | −42.9% |
+| Nemotron-30B | 28.6% | 0.0% | −28.6% |
+| **Qwen3-80b** | 14.3% | **50.0%** | +35.7% |
+
+The leaderboard **inverts** between the two benchmarks. Gemini Flash-Lite (the v0.3.0 proposer)
+scores 85.7% on its own questions but drops to 0% on GPT-generated questions. Qwen3-80b — weakest
+on the Gemini benchmark — becomes the strongest on the GPT benchmark. This is the textbook
+signature of proposer-model bias.
+
+### Interpretation
+
+The results suggest that a model scoring highly on LiveChemBench may partly reflect alignment
+between its reasoning style and the proposer's question-framing style, rather than pure chemistry
+knowledge. Mitigations for a production benchmark include:
+- Rotating the proposer across multiple model families each month.
+- Using a neutral third-party model as proposer (distinct from all evaluated models).
+- Averaging scores across proposer variants.
+
+### Caveat
+
+`v0.6.0` contains only 2 questions because the `QuestionType` enum accepted only T1–T3 at run
+time — GPT's T4/T5 proposals were silently rejected. The enum is now extended to T1–T6 in the
+`experiment/gpt-proposer` branch. A full re-run with the fix would produce a statistically
+meaningful sample (target ≥ 30 questions). This is the primary recommended follow-up.
+
+### Reproducing the experiment
+
+```bash
+git checkout experiment/gpt-proposer
+export NVIDIA_API_KEY=<your key>
+bash run_experiment_gpt.sh                    # ~3 minutes for 4 papers
+python experiments/compare_proposer_bias.py   # prints the leaderboard table
+```
+
+Full experiment design and discussion: [`experiments/README.md`](experiments/README.md).
+
+---
+
 ## Benchmark format
 
 `data/benchmark/livechembench_v<X.Y.Z>.json`:
