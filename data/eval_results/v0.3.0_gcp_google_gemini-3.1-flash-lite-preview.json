@@ -1,0 +1,103 @@
+{
+  "model": "gcp/google/gemini-3.1-flash-lite-preview",
+  "benchmark_version": "0.3.0",
+  "evaluated_at": "2026-05-15T19:03:40.265914+00:00",
+  "scores": {
+    "overall": 0.8571,
+    "by_type": {
+      "T2": 1.0,
+      "T3": 0.5
+    },
+    "by_paper": {
+      "source:pmc:12987923": 1.0,
+      "source:pmc:12987937": 1.0,
+      "source:pubmed:12478176": 1.0,
+      "source:pubmed:12987816": 0.5
+    },
+    "by_answer_type": {
+      "int": 1.0,
+      "choice": 0.5
+    },
+    "n_correct": 6,
+    "n_total": 7
+  },
+  "results": [
+    {
+      "question_id": "2026-05_001",
+      "paper_id": "source:pmc:12987923",
+      "question_type": "T2",
+      "answer_type": "int",
+      "question_text": "How many rotatable bonds are present in kaempferol (SMILES: C1=CC(=CC=C1C2=C(C(=O)C3=C(C=C(C=C3O2)O)O)O)O) according to the RDKit default definition?",
+      "expected_answer": "1",
+      "model_raw_response": "1",
+      "model_answer": "1",
+      "correct": true
+    },
+    {
+      "question_id": "2026-05_002",
+      "paper_id": "source:pmc:12987923",
+      "question_type": "T3",
+      "answer_type": "choice",
+      "question_text": "Between arbutin (SMILES: C1=CC(=CC=C1O[C@H]2[C@@H]([C@H]([C@@H]([C@H](O2)CO)O)O)O)O, PubChem CID 440934) and kaempferol (SMILES: C1=CC(=CC=C1C2=C(C(=O)C3=C(C=C(C=C3O2)O)O)O)O, PubChem CID 5280863), which compound has a higher number of aromatic atoms as defined by RDKit?",
+      "expected_answer": "kaempferol",
+      "model_raw_response": "kaempferol",
+      "model_answer": "kaempferol",
+      "correct": true
+    },
+    {
+      "question_id": "2026-05_003",
+      "paper_id": "source:pmc:12987937",
+      "question_type": "T2",
+      "answer_type": "int",
+      "question_text": "Andrographolide is the primary bioactive component in the ASFH hydrogel. Using its canonical SMILES (CC1=CC2C(C1=C)CC3(C(C2(C)O)CCC4C3(CCC(C4)O)C)O), how many stereocenters are present in the molecule?",
+      "expected_answer": "8",
+      "model_raw_response": "8",
+      "model_answer": "8",
+      "correct": true
+    },
+    {
+      "question_id": "2026-05_004",
+      "paper_id": "source:pubmed:12478176",
+      "question_type": "T2",
+      "answer_type": "int",
+      "question_text": "How many rotatable bonds does Istaroxime (SMILES: CC12CCC3C(C1CCC2O)CCC4(C3(CCC4C5=CC(=O)OCC5)O)C) have, as calculated by RDKit?",
+      "expected_answer": "1",
+      "model_raw_response": "1",
+      "model_answer": "1",
+      "correct": true
+    },
+    {
+      "question_id": "2026-05_005",
+      "paper_id": "source:pubmed:12478176",
+      "question_type": "T2",
+      "answer_type": "int",
+      "question_text": "How many aromatic atoms are present in the structure of Istaroxime (SMILES: CC12CCC3C(C1CCC2O)CCC4(C3(CCC4C5=CC(=O)OCC5)O)C)?",
+      "expected_answer": "0",
+      "model_raw_response": "0",
+      "model_answer": "0",
+      "correct": true
+    },
+    {
+      "question_id": "2026-05_006",
+      "paper_id": "source:pubmed:12987816",
+      "question_type": "T2",
+      "answer_type": "int",
+      "question_text": "Using RDKit, calculate the number of rotatable bonds for Bis-GMA (2,2-bis[4-(2-hydroxy-3-methacryloyloxypropoxy)phenyl]propane), which has the SMILES: CC(C)(c1ccc(cc1)OCC(O)COC(=O)C(=C)C)c1ccc(cc1)OCC(O)COC(=O)C(=C)C.",
+      "expected_answer": "14",
+      "model_raw_response": "14",
+      "model_answer": "14",
+      "correct": true
+    },
+    {
+      "question_id": "2026-05_007",
+      "paper_id": "source:pubmed:12987816",
+      "question_type": "T3",
+      "answer_type": "choice",
+      "question_text": "Between TEGDMA (Triethylene glycol dimethacrylate, SMILES: CC(=C)C(=O)OCCOCCOCCOC(=O)C(=C)C) and UDMA (Urethane dimethacrylate, SMILES: CC(=C)C(=O)OCCNC(=O)OC(C)CC(C)CC(C)(CC(C)OC(=O)NC)OC(=O)C(=C)C), which molecule has a higher number of rotatable bonds as computed by RDKit?",
+      "expected_answer": "UDMA",
+      "model_raw_response": "TEGDMA",
+      "model_answer": "TEGDMA",
+      "correct": false
+    }
+  ]
+}

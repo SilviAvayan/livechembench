@@ -64,6 +64,9 @@ class QuestionType(str, Enum):
     T1 = "T1"  # PubChem property query
     T2 = "T2"  # RDKit structural reasoning
     T3 = "T3"  # Segment-anchored contrastive / comparative
+    T4 = "T4"  # Multiple-choice concept / mechanism
+    T5 = "T5"  # Short-answer factual grounded in paper
+    T6 = "T6"  # Open-ended reasoning
 
 
 class AnswerType(str, Enum):
