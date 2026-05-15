@@ -2,6 +2,8 @@
 
 [![CI](https://github.com/SilviAvayan/livechembench/actions/workflows/ci.yml/badge.svg)](https://github.com/SilviAvayan/livechembench/actions/workflows/ci.yml)
 
+**Repository:** [https://github.com/SilviAvayan/livechembench](https://github.com/SilviAvayan/livechembench)
+
 A dynamic, contamination-resistant chemistry reasoning benchmark built automatically from recent peer-reviewed literature. The pipeline ingests raw chemistry PDFs, generates structured benchmark questions, enforces quality through a multi-agent critic loop, verifies answers deterministically using RDKit and PubChem, and evaluates LLMs against the resulting dataset — all without human annotation.
 
 ## Motivation
