@@ -1,0 +1,92 @@
+{
+  "name": "LiveChemBench",
+  "version": "0.6.0",
+  "created_at": "2026-05-15T19:03:15.069097+00:00",
+  "stats": {
+    "total": 2,
+    "by_type": {
+      "T2": 2
+    },
+    "by_paper": {
+      "source:pmc:12987937": 1,
+      "source:pubmed:12987816": 1
+    },
+    "by_answer_type": {
+      "int": 2
+    }
+  },
+  "questions": [
+    {
+      "id": "2026-05_001",
+      "paper_id": "source:pmc:12987937",
+      "segment_id": "key_points",
+      "cid": 71595676,
+      "question": "How many rotatable bonds does andrographolide (SMILES: CC1(C2CC3(C(C2(CC1)C)C=C(C(=O)O3)CO)O)C=C) have according to RDKit (RDKit default definition)?",
+      "answer": "4",
+      "answer_type": "int",
+      "tolerance": null,
+      "verifier": {
+        "type": "rdkit",
+        "recipe": {
+          "endpoint": null,
+          "field": null,
+          "function": "rdkit.Chem",
+          "input": "smiles",
+          "description": "from rdkit import Chem; from rdkit.Chem import rdMolDescriptors; mol = Chem.MolFromSmiles('CC1(C2CC3(C(C2(CC1)C)C=C(C(=O)O3)CO)O)C=C'); print(rdMolDescriptors.CalcNumRotatableBonds(mol))"
+        }
+      },
+      "filters": {
+        "ill_defined": false,
+        "missing_conditions": [],
+        "guessable": false
+      },
+      "provenance": {
+        "month": "2026-05",
+        "paper_source": "pmc",
+        "conversion_tool": "paddle_vl",
+        "pubchem_query_log_hash": "2596b4f10a4a2b16"
+      },
+      "question_type": "T2",
+      "chemical_entities": [
+        "Andrographolide"
+      ],
+      "answer_units": null
+    },
+    {
+      "id": "2026-05_002",
+      "paper_id": "source:pubmed:12987816",
+      "segment_id": "sections",
+      "cid": 33775,
+      "question": "Using RDKit, how many rotatable bonds are present in the molecule with SMILES 'C=C(C)C(=O)OCCN(CCOC(=O)C=C(C)C)C'?",
+      "answer": "7",
+      "answer_type": "int",
+      "tolerance": null,
+      "verifier": {
+        "type": "rdkit",
+        "recipe": {
+          "endpoint": null,
+          "field": null,
+          "function": "rdkit.Chem",
+          "input": "smiles",
+          "description": "rdkit.Chem.Lipinski.NumRotatableBonds(mol)"
+        }
+      },
+      "filters": {
+        "ill_defined": false,
+        "missing_conditions": [],
+        "guessable": false
+      },
+      "provenance": {
+        "month": "2026-05",
+        "paper_source": "pubmed",
+        "conversion_tool": "paddle_vl",
+        "pubchem_query_log_hash": "81c2a77126993e37"
+      },
+      "question_type": "T2",
+      "chemical_entities": [
+        "Urethane dimethacrylate (SMILES C=C(C)C(=O)OCCN(CCOC(=O)C=C(C)C)C)"
+      ],
+      "answer_units": null
+    }
+  ]
+}

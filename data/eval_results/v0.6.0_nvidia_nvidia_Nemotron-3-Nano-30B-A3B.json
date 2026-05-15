@@ -1,0 +1,44 @@
+{
+  "model": "nvidia/nvidia/Nemotron-3-Nano-30B-A3B",
+  "benchmark_version": "0.6.0",
+  "evaluated_at": "2026-05-15T19:03:25.824155+00:00",
+  "scores": {
+    "overall": 0.0,
+    "by_type": {
+      "T2": 0.0
+    },
+    "by_paper": {
+      "source:pmc:12987937": 0.0,
+      "source:pubmed:12987816": 0.0
+    },
+    "by_answer_type": {
+      "int": 0.0
+    },
+    "n_correct": 0,
+    "n_total": 2
+  },
+  "results": [
+    {
+      "question_id": "2026-05_001",
+      "paper_id": "source:pmc:12987937",
+      "question_type": "T2",
+      "answer_type": "int",
+      "question_text": "How many rotatable bonds does andrographolide (SMILES: CC1(C2CC3(C(C2(CC1)C)C=C(C(=O)O3)CO)O)C=C) have according to RDKit (RDKit default definition)?",
+      "expected_answer": "4",
+      "model_raw_response": "We need to answer: number of rotatable bonds in andrographolide according to RDKit default definition. Need to compute. Let's think: Andrographolide is a diterpene lactone. SMILES given: CC1(C2CC3(C(C2(CC1)C)C=C(C(=O)O3)CO)O)C=C\n\nWe need to count rotatable bonds per RDKit default definition. Rotatable bonds are defined as non-terminal heavy atoms that are sp2/sp3? Actually RDKit's CountRotatableBonds uses rules: bonds that can be rotated: single bonds between heavy atoms where both atoms are not at the ends of a ring? Let's recall: In RDKit, a bond is rotatable if it is a single bond, and both atoms are not aromatic, and both atoms are not at the end of a ring? Actually the definition: A bond is rotatable if it is a single bond, and the two atoms are not at the ends of a ring (i.e., not part of a ring?), and the bond is not a double bond, not a triple bond, not a coordinate bond, and not a bond to a heteroatom with certain restrictions? Let's recall precisely: RD",
+      "model_answer": "1",
+      "correct": false
+    },
+    {
+      "question_id": "2026-05_002",
+      "paper_id": "source:pubmed:12987816",
+      "question_type": "T2",
+      "answer_type": "int",
+      "question_text": "Using RDKit, how many rotatable bonds are present in the molecule with SMILES 'C=C(C)C(=O)OCCN(CCOC(=O)C=C(C)C)C'?",
+      "expected_answer": "7",
+      "model_raw_response": "We need to compute number of rotatable bonds in that SMILES using RDKit. Rotatable bonds count per Lipinski: bonds that can rotate, typically single bonds not at terminals, not aromatic, not double, not in ring, etc. RDKit's function `Chem.rdchem.Chem.Mol.GetRotatableBondCount()` counts bonds that are rotatable: single bonds between two heavy atoms where both atoms have at least one hydrogen or are not at the end? Actually definition: a bond is rotatable if it is a single bond between two heavy atoms, and neither atom is a terminal atom (i.e., has only one heavy neighbor?) Wait: In Lipinski rule, rotatable bond is a single bond connecting two heavy atoms, not part of a ring, and where both atoms have at least one hydrogen. RDKit's GetRotatableBondCount uses the definition: a bond is rotatable if it is a single bond, not a double or triple, not in a ring, and both atoms are not aromatic? Let's quickly compute manually? Might be easier to approximate using RDKit but we can't run code. We can reason.\n\nSMILES: 'C=C(C)C(=O)OCCN(CCOC(=O)",
+      "model_answer": "We need to compute number of rotatable bonds in that SMILES using RDKit. Rotatable bonds count per Lipinski: bonds that can rotate, typically single bonds not at terminals, not aromatic, not double, not in ring, etc. RDKit's function `Chem.rdchem.Chem.Mol.GetRotatableBondCount()` counts bonds that are rotatable: single bonds between two heavy atoms where both atoms have at least one hydrogen or are not at the end? Actually definition: a bond is rotatable if it is a single bond between two heavy atoms, and neither atom is a terminal atom (i.e., has only one heavy neighbor?) Wait: In Lipinski rule, rotatable bond is a single bond connecting two heavy atoms, not part of a ring, and where both atoms have at least one hydrogen. RDKit's GetRotatableBondCount uses the definition: a bond is rotatable if it is a single bond, not a double or triple, not in a ring, and both atoms are not aromatic? Let's quickly compute manually? Might be easier to approximate using RDKit but we can't run code. We can reason.\n\nSMILES: 'C=C(C)C(=O)OCCN(CCOC(=O)",
+      "correct": false
+    }
+  ]
+}

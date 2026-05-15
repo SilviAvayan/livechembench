@@ -1,0 +1,44 @@
+{
+  "model": "nvidia/openai/gpt-oss-120b",
+  "benchmark_version": "0.6.0",
+  "evaluated_at": "2026-05-15T19:03:18.898294+00:00",
+  "scores": {
+    "overall": 0.0,
+    "by_type": {
+      "T2": 0.0
+    },
+    "by_paper": {
+      "source:pmc:12987937": 0.0,
+      "source:pubmed:12987816": 0.0
+    },
+    "by_answer_type": {
+      "int": 0.0
+    },
+    "n_correct": 0,
+    "n_total": 2
+  },
+  "results": [
+    {
+      "question_id": "2026-05_001",
+      "paper_id": "source:pmc:12987937",
+      "question_type": "T2",
+      "answer_type": "int",
+      "question_text": "How many rotatable bonds does andrographolide (SMILES: CC1(C2CC3(C(C2(CC1)C)C=C(C(=O)O3)CO)O)C=C) have according to RDKit (RDKit default definition)?",
+      "expected_answer": "4",
+      "model_raw_response": "We need to compute number of rotatable bonds for given SMILES using RDKit default definition. Need to parse SMILES: \"CC1(C2CC3(C(C2(CC1)C)C=C(C(=O)O3)CO)O)C=C\". Let's try to reason manually? Could approximate but better to think of structure. Andrographolide is a diterpenoid lactone with several rings. Rotatable bonds are single non-ring, non-terminal bonds between non-hydrogen atoms, not amide, not in ring, not attached to hetero atoms? RDKit definition: Rotatable bond is a single bond between non-terminal, non-ring atoms, not in a ring, not attached to a hetero atom (except maybe). Actually RDKit's definition: bond is rotatable if it is a single bond, not in a ring, not a terminal bond, and not attached to a hetero atom (i.e., both atoms are not in a set of [N, O, S, P, F, Cl, Br, I]? Wait need specifics. According to RDKit: Rotatable bond SMARTS: \"[!$(*#*)&!D1]-&!@[!$(*#*)&",
+      "model_answer": "1",
+      "correct": false
+    },
+    {
+      "question_id": "2026-05_002",
+      "paper_id": "source:pubmed:12987816",
+      "question_type": "T2",
+      "answer_type": "int",
+      "question_text": "Using RDKit, how many rotatable bonds are present in the molecule with SMILES 'C=C(C)C(=O)OCCN(CCOC(=O)C=C(C)C)C'?",
+      "expected_answer": "7",
+      "model_raw_response": "We need to compute number of rotatable bonds using RDKit definition. The SMILES: C=C(C)C(=O)OCCN(CCOC(=O)C=C(C)C)C\n\nWe need to count rotatable bonds: Typically defined as single non-ring bonds between non-terminal heavy atoms, excluding amide C-N, etc. RDKit's default RotatableBondSmarts: [!$(*#*)&!D1]-!@[!$(*#*)&!D1] (I think). It excludes bonds to terminal heavy atoms, bonds in rings, amide C-N, etc.\n\nLet's parse structure: Let's identify atoms.\n\nSMILES: C=C(C)C(=O)OCCN(CCOC(=O)C=C(C)C)C\n\nBreakdown:\n\nStart: C= C(C) C(=O) O C C N( C C O C(=O) C= C(C) C ) C\n\nLet's label:\n\n1: C (alkene) =2\n2: C (alkene) attached to (C) and C(=O). So 2 is sp2 carbon with substituents: double bond to 1, single bond to",
+      "model_answer": "1",
+      "correct": false
+    }
+  ]
+}

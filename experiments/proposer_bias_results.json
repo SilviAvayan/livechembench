@@ -1,0 +1,28 @@
+{
+  "rows": [
+    {
+      "model": "gcp/google/gemini-3.1-flash-lite-preview",
+      "v0.3.0_acc": 0.8571428571428571,
+      "v0.6.0_acc": 0.0,
+      "delta": -0.8571428571428571
+    },
+    {
+      "model": "nvidia/nvidia/Nemotron-3-Nano-30B-A3B",
+      "v0.3.0_acc": 0.2857142857142857,
+      "v0.6.0_acc": 0.0,
+      "delta": -0.2857142857142857
+    },
+    {
+      "model": "nvidia/openai/gpt-oss-120b",
+      "v0.3.0_acc": 0.42857142857142855,
+      "v0.6.0_acc": 0.0,
+      "delta": -0.42857142857142855
+    },
+    {
+      "model": "nvidia/qwen/qwen3-next-80b-a3b-instruct",
+      "v0.3.0_acc": 0.14285714285714285,
+      "v0.6.0_acc": 0.5,
+      "delta": 0.35714285714285715
+    }
+  ]
+}

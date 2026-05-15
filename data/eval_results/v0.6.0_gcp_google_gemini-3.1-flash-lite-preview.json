@@ -1,0 +1,44 @@
+{
+  "model": "gcp/google/gemini-3.1-flash-lite-preview",
+  "benchmark_version": "0.6.0",
+  "evaluated_at": "2026-05-15T19:03:31.733747+00:00",
+  "scores": {
+    "overall": 0.0,
+    "by_type": {
+      "T2": 0.0
+    },
+    "by_paper": {
+      "source:pmc:12987937": 0.0,
+      "source:pubmed:12987816": 0.0
+    },
+    "by_answer_type": {
+      "int": 0.0
+    },
+    "n_correct": 0,
+    "n_total": 2
+  },
+  "results": [
+    {
+      "question_id": "2026-05_001",
+      "paper_id": "source:pmc:12987937",
+      "question_type": "T2",
+      "answer_type": "int",
+      "question_text": "How many rotatable bonds does andrographolide (SMILES: CC1(C2CC3(C(C2(CC1)C)C=C(C(=O)O3)CO)O)C=C) have according to RDKit (RDKit default definition)?",
+      "expected_answer": "4",
+      "model_raw_response": "2",
+      "model_answer": "2",
+      "correct": false
+    },
+    {
+      "question_id": "2026-05_002",
+      "paper_id": "source:pubmed:12987816",
+      "question_type": "T2",
+      "answer_type": "int",
+      "question_text": "Using RDKit, how many rotatable bonds are present in the molecule with SMILES 'C=C(C)C(=O)OCCN(CCOC(=O)C=C(C)C)C'?",
+      "expected_answer": "7",
+      "model_raw_response": "12",
+      "model_answer": "12",
+      "correct": false
+    }
+  ]
+}
